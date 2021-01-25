@@ -1,7 +1,14 @@
-# Homework Template
+# Welcome to my Repository
 
-This is template repository for hosting and posting your homework assignments for Programming with Data.
+This repository will host my work in *Programming with Data* taught by Dr. Wiernik. I will contribute the following to this repository:
+* homework 
+* assignments
+* final project
 
-Making a change here 
+## Navigating the Repository 
 
-I made another change here
+To navigate this respository, words words words
+
+# **About the author**
+## Hi! My name is Whitney and I use she/her pronouns.
+###### this is what this looks like 
