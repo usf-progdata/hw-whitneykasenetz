@@ -15,4 +15,5 @@ To navigate this repository, you may need to switch branches. Just click the but
 ## Hello, my name is Whitney and I use she/her pronouns! :tada
 ###### this is what this looks like 
 
-![alt text](https://imgs.xkcd.com/comics/stove_ownership.png "Although maybe it's just a phase, like freshman year of college when I realized I could just buy frosting in a can.")
+![this button](master.png)
+
