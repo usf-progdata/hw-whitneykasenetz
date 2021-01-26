@@ -21,7 +21,6 @@ https://www.youtube.com/watch?v=q0jaSfkErAQ
   
   Lastly, Here's a music [playlist](https://open.spotify.com/playlist/6TEtPJxx8hy9Vog5c3MZ3n) I'm working on. 
 
-![](https://imgur.com/t/funny_gifs/IQUoEOE)
 
 ###### Thank you for visiting my repository! 
 
