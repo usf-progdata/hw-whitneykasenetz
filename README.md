@@ -12,8 +12,9 @@ To navigate this repository, you may need to switch branches. Just click the but
 
 
 # **About the author**
-## Hello, my name is Whitney and I use she/her pronouns! :tada
+## Hello, my name is Whitney and I use she/her pronouns! :tada:
+
 ###### this is what this looks like 
 
-![this button](master.png)
+
 
