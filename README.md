@@ -11,7 +11,7 @@ In this repository, I have a [master](https://github.com/usf-progdata/hw-whitney
 
 
 # **About the Author**
-## Hello, my name is Whitney and I use she/her pronouns! :tada:
+## Hello, my name is Whitney! :tada: My pronouns are *she/her* 
  I am an undergraduate student studying Psychology with a minor in Applied Behavior Analysis. I have plans to go to graduate school for neuroscience, and I have a particular interest in identifying the neural mechanisms that underlie Autism Spectrum Disorder and ADHD. For now, I'm just working on finishing my B.A. and getting some experience in a research lab. You can learn more about my professional life and connect with me  [here](https://www.linkedin.com/in/whitney-kasenetz-16716119a/). 
 In my free time, I like to play and write music. You can click the link below to see me ```~in action~```
 
