@@ -1,0 +1,45 @@
+---
+title: "exploringpenguins_hw01"
+author: "Whitney Kasenetz"
+date: "1/25/2021"
+output: 
+  github_document : default 
+  html_document : default
+---
+
+## ## Here I'm exploring *Penguins!* 
+
+```{r} 
+library(palmerpenguins)
+penguins
+```
+
+## I want some more information about the data I'm looking at 
+```{r}
+?penguins
+```
+
+# How many penguins are there in the dataset? 
+```{r}
+nrow(penguins)
+```
+
+###### There are 344 penguins
+
+# What kind of information can I find in this dataset? 
+```{r}
+
+names(penguins)
+```
+
+###### They collected data on the species, island, bill length, bill depth, flipper length, body mass, sex, year 
+
+# How many penguins come from each island? 
+```{r}
+summary(penguins$island)
+```
+
+###### It looks like there are 168 from Biscoe, 124 from Dream, and 52 from Torgersen. 
+
+
+
