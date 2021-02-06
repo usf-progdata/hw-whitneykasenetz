@@ -7,7 +7,7 @@ output:
   html_document : default
 ---
 
-## Here I'm exploring *Penguins!* 
+## Here I'm exploring  *Penguins!* 
 
 ```{r} 
 library(palmerpenguins)
