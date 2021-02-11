@@ -96,9 +96,13 @@ penguins %>%
     number_penguins = n())
 
 palmerpenguins::penguins %>% 
-  select(island, bill_length_mm) %>% 
-  ggplot(aes(x = island, y = bill_length_mm)) +
+  select(species, bill_length_mm) %>% 
+  ggplot(aes(x = species, y = bill_length_mm)) +
   geom_bar(stat = "identity")
+
+ggplot(palmerpenguins::penguins) +
+  aes(island) +
+  geom_bar()
 
 ```
 
@@ -107,4 +111,10 @@ palmerpenguins::penguins %>%
 Evaluate this code and describe the result. The goal was to get the data for Rwanda and Afghanistan. Does this work? Why or why not? If not, what is the correct way to do this?
 ```{r bonus}
 filter(gapminder, country == c("Rwanda", "Afghanistan"))
+
+# We don't want to search for the exact vector "Rwanda, Afghanistan." We are asking for them specifically in that order, but we really want all the values that are there for each country. We need to use %in%. 
+
+filter(gapminder, country %in% c("Rwanda", "Afghanistan"))
+
+#Running this code compared to the first generates a lot more values. This is one way to tell the first line of code is skipping over some of the data because it's not in the specified order. 
 ```
