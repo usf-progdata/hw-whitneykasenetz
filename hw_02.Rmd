@@ -18,6 +18,7 @@ library(dplyr)
 library(gapminder)
 library(ggplot2)
 library(tidyverse)
+library(palmerpenguins)
 ```
 
 # Exercise 1 : Basic dplyr
@@ -70,6 +71,15 @@ Include whatever staistics you feel appropriate (mean, median sd, range, etc.).
 Make a scatterplot of these variables using ggplot().
 
 ```{r 2.1}
+penguins %>%
+  group_by(island) %>% 
+  summarize(mean_flipper = mean(flipper_length_mm, na.rm = TRUE),
+    mean_bill = mean(bill_length_mm, na.rm = TRUE))
+
+palmerpenguins::penguins %>% 
+  ggplot +
+    aes(x = flipper_length_mm, y = bill_length_mm) +
+    geom_point(alpha = 0.5, size = 1) 
 
 ```
 
@@ -78,6 +88,17 @@ Make a scatterplot of these variables using ggplot().
 Make a summary table giving the sample size (hint: n()) and descriptive statistics for the quantitative variable by group.
 Make one or more useful plots to visualize these variables.
 ```{r 2.2} 
+penguins %>%
+  select(island, flipper_length_mm, bill_length_mm) %>% 
+  group_by(island) %>% 
+    summarize(mean_flipper = mean(flipper_length_mm, na.rm = TRUE),
+    mean_bill = mean(bill_length_mm, na.rm = TRUE),
+    number_penguins = n())
+
+palmerpenguins::penguins %>% 
+  select(island, bill_length_mm) %>% 
+  ggplot(aes(x = island, y = bill_length_mm)) +
+  geom_bar(stat = "identity")
 
 ```
 
