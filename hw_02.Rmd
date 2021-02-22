@@ -9,16 +9,16 @@ output:
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
-```
-
-
-```{r getting my ingredients ready}
-
 library(dplyr)
 library(gapminder)
 library(ggplot2)
-library(tidyverse)
+library(tidyverse) # BMW: library(tidyverse) already loads dplyr and ggplot2, so you don't need both. 
 library(palmerpenguins)
+```
+
+<!-- BMW: Love the chunk name! But for library()-ing up packages, put those in the 'setup' chunk. -->
+
+```{r getting my ingredients ready}
 ```
 
 # Exercise 1 : Basic dplyr
@@ -31,28 +31,36 @@ gapminder %>%
 ```
 
 ## Use the pipe operator %>% to select “country” and “gdpPercap” from your filtered dataset in 1.1.
+
+<!-- BMW: In markdown, you need a blank line between paragrpahs. A single line break is ignored. -->
+
 ```{r 1.2}
 gapminder %>% 
-  filter(country %in% c("Norway", "Finland", "Sweden") & year > 1969 & year < 1980) %>% 
+  filter(country %in% c("Norway", "Finland", "Sweden") & year > 1969 & year < 1980) %>%
   select(country, year, gdpPercap)
 ```
 
 ## Make a new variable in gapminder for the change in life expectancy from the previous measurement. Filter this table to show all of the entries that have experienced a drop in life expectancy.
+
 ```{r 1.3}
 gapminder %>% 
   group_by(country) %>% 
-  mutate(change_lifeExp = lag(lifeExp))
+  mutate(change_lifeExp = lifeExp - lag(lifeExp)) %>% 
+  filter(change_lifeExp < 0)
 ```
 
+<!-- BMW: Almost there! lag() doesn't compute the change. It just gives the previous row's value. So you need to do a few more steps here. -->
+
 ## Filter gapminder so that it shows the max GDP per capita experienced by each country.
+
 ```{r 1.4}
-gapminder %>% 
-  select(gdpPercap, country) %>% 
+gapminder %>% # BMW: Don't select() unecessarily
   group_by(country)
-  mutate(max_gdpPercap = max(gdpPercap))
+  filter(gdpPercap == max(gdpPercap)) # BMW: The question asked you to _filter_ the dataset to each country's maximum gdp, not mutate a new variable. Be sure to actually look at the output and see if it is giving you what the question asks for/what you expect.
 ```
 
 ## Produce a scatterplot of Canada’s life expectancy vs. GDP per capita using ggplot2, without defining a new variable. That is, after filtering the gapminder data set, pipe it directly into the ggplot() function. In your plot, put GDP per capita on a log scale.
+
 ```{r 1.5} 
 gapminder %>% 
   filter(country == "Canada") %>% 
@@ -61,6 +69,8 @@ gapminder %>%
   geom_point(alpha = 1, size = 2, color = "blue", fill = "blue") +
   scale_x_log10() 
 ```
+
+<!-- BMW: Great job! -->
 
 # Exercise 2
 
@@ -73,13 +83,15 @@ Make a scatterplot of these variables using ggplot().
 ```{r 2.1}
 penguins %>%
   group_by(island) %>% 
-  summarize(mean_flipper = mean(flipper_length_mm, na.rm = TRUE),
-    mean_bill = mean(bill_length_mm, na.rm = TRUE))
+  summarize(
+    mean_flipper = mean(flipper_length_mm, na.rm = TRUE),
+    mean_bill = mean(bill_length_mm, na.rm = TRUE)
+  )
 
 palmerpenguins::penguins %>% 
-  ggplot +
-    aes(x = flipper_length_mm, y = bill_length_mm) +
-    geom_point(alpha = 0.5, size = 1) 
+  ggplot() + # BMW: Always put the () on a function call when you use the pipe, even if they are empty.
+  aes(x = flipper_length_mm, y = bill_length_mm) +
+  geom_point(alpha = 0.5, size = 1) 
 
 ```
 
@@ -87,28 +99,31 @@ palmerpenguins::penguins %>%
 
 Make a summary table giving the sample size (hint: n()) and descriptive statistics for the quantitative variable by group.
 Make one or more useful plots to visualize these variables.
+
 ```{r 2.2} 
 penguins %>%
-  select(island, flipper_length_mm, bill_length_mm) %>% 
+  # select(island, flipper_length_mm, bill_length_mm) %>% # BMW: Don't select() unnecessarily
   group_by(island) %>% 
-    summarize(mean_flipper = mean(flipper_length_mm, na.rm = TRUE),
-    mean_bill = mean(bill_length_mm, na.rm = TRUE),
-    number_penguins = n())
+  summarize(mean_flipper = mean(flipper_length_mm, na.rm = TRUE),
+            mean_bill = mean(bill_length_mm, na.rm = TRUE),
+            number_penguins = n())
 
-palmerpenguins::penguins %>% 
-  select(species, bill_length_mm) %>% 
+palmerpenguins::penguins %>% # BMW: Why did you change from island to species here?
+  # select(species, bill_length_mm) %>% # BMW: Don't select() unnecessarily
   ggplot(aes(x = species, y = bill_length_mm)) +
-  geom_bar(stat = "identity")
+  # geom_bar(stat = "identity") # BMW: geom_bar() isn't a good choice here. This will show bars for the _total_ (sum) of the bill lengths across all of the penguins for each species. That's not what you wanted is it? A better choice would be to plot the individual data points and a summary boxplot
+  geom_jitter(aes(color = species), height = 0, width = .2) +
+  geom_boxplot(fill = "transparent")
 
 ggplot(palmerpenguins::penguins) +
   aes(island) +
   geom_bar()
-
 ```
 
 # Bonus Exercise: Recycling
 
 Evaluate this code and describe the result. The goal was to get the data for Rwanda and Afghanistan. Does this work? Why or why not? If not, what is the correct way to do this?
+
 ```{r bonus}
 filter(gapminder, country == c("Rwanda", "Afghanistan"))
 
