@@ -1,0 +1,125 @@
+# Homework 03
+
+You will analyze data looking at the relationship between **green reputation** and three personality traits--**compassion**, **intellectual curiosity**, and **openness to experiences**.
+The dataset includes data from **students** and **non-students**.
+
+```{r}
+dictionary <- readr::read_csv("green_dictionary.csv")
+green_data <- readr::read_csv("green_data.csv")
+
+library(dplyr)
+library(ggplot2)
+library(tidyverse)
+library(psychTools)
+
+```
+
+```{r}
+view(dictionary)
+view(green_data)
+```
+ 
+ ## 1. Inspect the item responses (e.g., with graphs or by summarizing distinct values). Is anything unusual?
+
+```{r inspection}
+green_data %>% 
+  summary()
+#What's unusual here is that minimum values are "-99" for several of these items. I'm going to change the "-99" values to "NA."
+```
+```{r}
+ 
+my_green_data <- green_data %>% 
+  mutate(across(everything(), 
+                ~ na_if(.x, -99)))
+
+view(my_green_data)
+#Now there are no more "-99"s in my data.
+
+```
+## 2. Compute total scores for the four scales. Recode variables as needed.
+
+```{r}
+reversed <- dictionary %>% 
+  filter(Keying < 0)
+#making a new variable that filters those items that have a Keying less than 0 out of the dictionary. I should get 14 reverse coded variables.
+
+view(reversed)
+#looks good
+
+#now I need to reverse code them
+green_data_r <- my_green_data %>% 
+  mutate(
+    across(all_of(reversed),
+           ~ recode(.x, "1" = 5, "2" = 4, "3" = 3, "4" = 4, "5" = 1),
+           .names = "{.col}_r")
+  )
+#I keep getting error messages here!
+#**just keep swimming**
+
+#It looks like @samanthasheppard had a similar issue, so I'm going to borrow her solution so I can move forward until I figure out a better way. 
+view(reversed)
+
+green_data_r <- my_green_data %>%
+  mutate(
+    green2_r = recode(green2, "1" = "5", "2" = "4", "3" = "3", "4" = "2", "5" = "1"),
+    comp6_r = recode(comp6, "1" = "5", "2" = "4", "3" = "3", "4" = "2", "5" = "1"),
+    comp7_r = recode(comp7, "1" = "5", "2" = "4", "3" = "3", "4" = "2", "5" = "1"),
+    comp8_r = recode(comp8, "1" = "5", "2" = "4", "3" = "3", "4" = "2", "5" = "1"),
+    comp9_r = recode(comp9, "1" = "5", "2" = "4", "3" = "3", "4" = "2", "5" = "1"),
+    comp10_r = recode(comp10, "1" = "5", "2" = "4", "3" = "3", "4" = "2", "5" = "1"),
+    intel7_r = recode(intel7, "1" = "5", "2" = "4", "3" = "3", "4" = "2", "5" = "1"),
+    intel8_r = recode(intel8, "1" = "5", "2" = "4", "3" = "3", "4" = "2", "5" = "1"),
+    intel9_r = recode(intel9, "1" = "5", "2" = "4", "3" = "3", "4" = "2", "5" = "1"),
+    intel10_r = recode(intel10, "1" = "5", "2" = "4", "3" = "3", "4" = "2", "5" = "1"),
+    open7_r = recode(open7, "1" = "5", "2" = "4", "3" = "3", "4" = "2", "5" = "1"),
+    open8_r = recode(open8, "1" = "5", "2" = "4", "3" = "3", "4" = "2", "5" = "1"),
+    open9_r = recode(open9, "1" = "5", "2" = "4", "3" = "3", "4" = "2", "5" = "1"),     
+    open10_r = recode(open10, "1" = "5", "2" = "4", "3" = "3", "4" = "2", "5" = "1")
+  )
+  
+view(green_data_r)
+#now I see the new variables coded properly but I can't find my new variable "open10_r" which is last on the list I just made. Why? 
+
+#let's compute total scores for each person
+
+new_green_data_r <- green_data_r %>% 
+  rowwise() %>% 
+  mutate(
+    .id = id,
+    green_total = sum(c_across(green1:green5), na.rm = TRUE),
+    comp_total = sum(c_across(comp1:comp10), na.rm = TRUE), 
+    intel_total = sum(c_across(intel1:intel10), na.rm = TRUE),
+    open_total = sum(c_across(open1:open10), na.rm = TRUE)
+  )
+
+view(new_green_data_r)
+#It looks like some of the values for my new variables show up as "0" instead of "NA," so I want to change that.
+
+new_green_data_r %>% 
+  mutate(
+    across(green_total:open_total),
+    ~ recode(.x, "0" = )
+  )
+#SCRAP THIS, USE NA_IF FUNCTION
+```
+
+## 3. Rescale the variables so that they go from 0-100 instead of the original range.
+     Name the recaled variables `*_pomp`.
+```{r} 
+new_green_data_r <- new_green_data_r %>% 
+  mutate(across(c(green1:open9_r &!student), 
+                ~recode(.x, "1" = 0, "2" = 25, "3" = 50, "4" = 75, "5" = 100), 
+                .names = "{.col}_pomp"))
+
+view(new_green_data_r)
+#why didn't that work? they look the same as before
+```
+     
+  4. Make plots that illustrate the distributions of the 4 POMP-scored variables.
+  5. Make scatterplots showing the relationships between **green reputation** and each personality trait.
+     Include trend lines for **students** and **non-students**.
+     What do these plots show?
+  6. Compare **green reputation** for students and non-students using a **rainfall plot** (bar + density + data points).
+  7. Compute a summary table of means, SDs, medians, minima, and maxima for the four total scores for students and non-students.
+  
+In your assignment, prepare an RMarkdown file that includes both the coding and (for 4-7) narrative descriptions of your results.
