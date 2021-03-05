@@ -93,14 +93,8 @@ new_green_data_r <- green_data_r %>%
   )
 
 view(new_green_data_r)
-#It looks like some of the values for my new variables show up as "0" instead of "NA," so I want to change that.
+#I'm not seeing my new totals variables. Don't know what went wrong there
 
-new_green_data_r %>% 
-  mutate(
-    across(green_total:open_total),
-    ~ recode(.x, "0" = )
-  )
-#SCRAP THIS, USE NA_IF FUNCTION
 ```
 
 ## 3. Rescale the variables so that they go from 0-100 instead of the original range.
