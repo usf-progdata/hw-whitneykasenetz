@@ -1,0 +1,62 @@
+---
+title: "omplete Original Dataset: Questions and Answers for AQ, ASRS, PDI"
+author: "Whitney Kasenetz"
+date: "3/16/2021"
+output: html_doument
+---
+
+
+```{r ars}
+library(here)
+library(readr)
+library(dplyr)
+
+#reading in .sv files 
+pdiQuestions <- read_sv(here::here( "data", "pdiQuestions.csv"))
+pdiAnswers <- read_sv(here::here("data", "answersPDIwithSubsores.csv"))
+asrsAnswers <- read_sv(here::here("data", "answersASRS.csv"))
+asrsQuestions <- read_sv(here::here("data", "asrsQuestions.csv"))
+aqQuestions <- read_sv(here::here("data", "aqQuestions.csv"))
+aqAnswers <- read_sv(here::here("data", "aqAnswers.csv"))
+
+#creating inattentive and hyperative subategories of the asrs
+
+inattAnswers <- c(asrsAnswers$"01", asrsAnswers$"02", asrsAnswers$"03", asrsAnswers$"06", asrsAnswers$"07", asrsAnswers$"08", asrsAnswers$"09", asrsAnswers$"10")
+
+hyperAnswers <- c(asrsAnswers$"04", asrsAnswers$"05", asrsAnswers$"11", asrsAnswers$"12", asrsAnswers$"13", asrsAnswers$"14", asrsAnswers$"15", asrsAnswers$"16", asrsAnswers$"17")
+
+print(inattAnswers)
+print(hyperAnswers) #looks good!
+
+
+
+asrsAnswers$"01"
+asrsAnswers <- rename(asrsAnswers, "02" = "X3") #some of the participant IDs contain "x3" which is preventing this line of code from working, so I'm just gonna work without the participant IDs because I don't think I need them anyway
+
+
+asrsAnswers <- select(asrsAnswers, -X1) #that worked
+asrsAnswers <- select(asrsAnswers, -asrsInattentive) #gonna go ahead and toss out that weird column I made by accident while I'm at it
+
+#since I got that line of code to work, I'll continue renaming all my columns
+
+asrsAnswers <- rename(asrsAnswers, "03" = "X4", "04" = "X5", "05" = "X6", "06" = "X7", "07" = "X8", "08" = "X9", "09" = "X10", "10" = "X11", "11" = "X12", "12" = "X13", "13" = "X14", "14" = "X15", "15" = "X16", "16" = "X17", "17" = "X18", "18" = "X19")
+
+#it worked! but I forgot one, oops XD
+asrsAnswers <- rename(asrsAnswers, "01" = "ASRS")
+
+#the original header from the .xslx (and subsequently, the .csv) is showing up as my first row in the data. I don't want that there so I'll filter it out
+asrsAnswers <- filter(asrsAnswers, "2":"926")
+names(asrsAnswers) #looks good
+class(asrsAnswers)
+ls()
+str(asrsAnswers)
+asrsAnswers <- as.data.frame(asrsAnswers)
+print(asrsAnswers)
+
+```
+```{r}
+
+
+
+```
+
