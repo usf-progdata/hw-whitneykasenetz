@@ -27,12 +27,12 @@ green_data %>%
 #What's unusual here is that minimum values are "-99" for several of these items. I'm going to change the "-99" values to "NA."
 ```
 ```{r}
- 
-my_green_data <- green_data %>% 
+ #here I'm making a new variable called my_green_data and I'm changing green_data so it changes all the -99 data to "NA" 
+green_data <- green_data %>% 
   mutate(across(everything(), 
                 ~ na_if(.x, -99)))
 
-view(my_green_data)
+view(green_data)
 #Now there are no more "-99"s in my data.
 
 ```
@@ -40,72 +40,57 @@ view(my_green_data)
 
 ```{r}
 reversed <- dictionary %>% 
-  filter(Keying < 0)
-#making a new variable that filters those items that have a Keying less than 0 out of the dictionary. I should get 14 reverse coded variables.
+  filter(Keying < 0) %>% 
+  pull(Item)
+#making a new variable that filters those items that have a Keying less than 0 out of the dictionary. This will give me all the reverse coded variables, and I should get 14 of those. 
 
 view(reversed)
-#looks good
+#looks good, now I have a new variable with all the items I need to reverse code. 
 
-#now I need to reverse code them
-green_data_r <- my_green_data %>% 
+#now I need to actually reverse code them
+# here I'm changing all of my "reverse" values in my_green_data. changing 1 values to 5 values and so on. the names of the columns will be whatever they were before with an additional "_r" at the end.
+green_data_r <- green_data %>% 
   mutate(
     across(all_of(reversed),
            ~ recode(.x, "1" = 5, "2" = 4, "3" = 3, "4" = 4, "5" = 1),
            .names = "{.col}_r")
   )
-#I keep getting error messages here!
-#**just keep swimming**
 
-#It looks like @samanthasheppard had a similar issue, so I'm going to borrow her solution so I can move forward until I figure out a better way. 
-view(reversed)
+view(green_data_r) #why am I not seeing my column for open10_r when I run this code? 
 
-green_data_r <- my_green_data %>%
-  mutate(
-    green2_r = recode(green2, "1" = "5", "2" = "4", "3" = "3", "4" = "2", "5" = "1"),
-    comp6_r = recode(comp6, "1" = "5", "2" = "4", "3" = "3", "4" = "2", "5" = "1"),
-    comp7_r = recode(comp7, "1" = "5", "2" = "4", "3" = "3", "4" = "2", "5" = "1"),
-    comp8_r = recode(comp8, "1" = "5", "2" = "4", "3" = "3", "4" = "2", "5" = "1"),
-    comp9_r = recode(comp9, "1" = "5", "2" = "4", "3" = "3", "4" = "2", "5" = "1"),
-    comp10_r = recode(comp10, "1" = "5", "2" = "4", "3" = "3", "4" = "2", "5" = "1"),
-    intel7_r = recode(intel7, "1" = "5", "2" = "4", "3" = "3", "4" = "2", "5" = "1"),
-    intel8_r = recode(intel8, "1" = "5", "2" = "4", "3" = "3", "4" = "2", "5" = "1"),
-    intel9_r = recode(intel9, "1" = "5", "2" = "4", "3" = "3", "4" = "2", "5" = "1"),
-    intel10_r = recode(intel10, "1" = "5", "2" = "4", "3" = "3", "4" = "2", "5" = "1"),
-    open7_r = recode(open7, "1" = "5", "2" = "4", "3" = "3", "4" = "2", "5" = "1"),
-    open8_r = recode(open8, "1" = "5", "2" = "4", "3" = "3", "4" = "2", "5" = "1"),
-    open9_r = recode(open9, "1" = "5", "2" = "4", "3" = "3", "4" = "2", "5" = "1"),     
-    open10_r = recode(open10, "1" = "5", "2" = "4", "3" = "3", "4" = "2", "5" = "1")
-  )
-  
-view(green_data_r)
-#now I see the new variables coded properly but I can't find my new variable "open10_r" which is last on the list I just made. Why? 
+#should I forget about the the original items I just recoded? 
+green_data_r <- select(green_data_r, -c("green2", "comp6", "comp7", "comp8", "comp9", "comp10", "intel7", "intel8", "intel9", "intel10", "open7", "open8", "open9", "open10"))
 
-#let's compute total scores for each person
 
-new_green_data_r <- green_data_r %>% 
+view(green_data_r) #ok, now I only have the recoded versions
+
+
+#let's compute totals for individuals
+green <- c(green_data_r, "green1":"green5")
+
+
+ green_data_totals<- 
+   green_data_r %>%
   rowwise() %>% 
-  mutate(
-    .id = id,
-    green_total = sum(c_across(green1:green5), na.rm = TRUE),
-    comp_total = sum(c_across(comp1:comp10), na.rm = TRUE), 
-    intel_total = sum(c_across(intel1:intel10), na.rm = TRUE),
-    open_total = sum(c_across(open1:open10), na.rm = TRUE)
-  )
+  mutate(green_tot = sum(c_across(green1:green5), na.rm = TRUE),
+         comp_tot = sum(c_across(comp1:comp5 & comp6_r:comp10_r), na.rm = TRUE),
+         intel_tot = sum(c_across(intel1:intel6 & intel7_r:intel10_r), na.rm =TRUE),
+         open_tot = sum(c_across(open1:open6 & open7_r:open10_r), na.rm = TRUE)
+   ) %>% 
+   select(id, student, green_tot, comp_tot, intel_tot, open_tot)
 
-view(new_green_data_r)
-#I'm not seeing my new totals variables. Don't know what went wrong there
-
+view(green_data_totals)
 ```
 
 ## 3. Rescale the variables so that they go from 0-100 instead of the original range.
      Name the recaled variables `*_pomp`.
 ```{r} 
-new_green_data_r <- new_green_data_r %>% 
+new_green_data_r <- green_data_r %>% 
   mutate(across(c(green1:open9_r &!student), 
                 ~recode(.x, "1" = 0, "2" = 25, "3" = 50, "4" = 75, "5" = 100), 
                 .names = "{.col}_pomp"))
 
-view(new_green_data_r)
+view(new_green_data_r)  
 #why didn't that work? they look the same as before
 ```
      
