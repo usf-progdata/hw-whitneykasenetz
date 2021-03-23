@@ -61,13 +61,10 @@ view(green_data_r) #why am I not seeing my column for open10_r when I run this c
 #should I forget about the the original items I just recoded? 
 green_data_r <- select(green_data_r, -c("green2", "comp6", "comp7", "comp8", "comp9", "comp10", "intel7", "intel8", "intel9", "intel10", "open7", "open8", "open9", "open10"))
 
-
 view(green_data_r) #ok, now I only have the recoded versions
 
 
 #let's compute totals for individuals
-green <- c(green_data_r, "green1":"green5")
-
 
  green_data_totals<- 
    green_data_r %>%
@@ -79,7 +76,7 @@ green <- c(green_data_r, "green1":"green5")
    ) %>% 
    select(id, student, green_tot, comp_tot, intel_tot, open_tot)
 
-view(green_data_totals)
+view(green_data_totals) #whatever i did for comp, intel, and open didn't work
 ```
 
 ## 3. Rescale the variables so that they go from 0-100 instead of the original range.
