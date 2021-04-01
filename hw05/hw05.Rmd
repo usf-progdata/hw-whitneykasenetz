@@ -27,6 +27,14 @@ Each dataset contains the following information for the Top 3 selling scented or
 
 ```{r setup, include=FALSE}
 library(dplyr)
+library(tidyverse)
+library(readxl)
+library(gridExtra)
+library(RColorBrewer)
+library(colorspace)
+
+Scented_all <- read_excel(here::here("hw05/Scented_all.xlsx"))
+Unscented_all <- read_excel(here::here("hw05/Unscented_all.xlsx"))
 ```
 
 
@@ -56,7 +64,53 @@ Interpret these graphs.
 What do they show about scented candles over the time period?
 
 ```{r}
+Scented_all <- Scented_all %>% 
+  select("CandleID", "Date", "Rating", "Review") %>% 
+  filter(Date > "2017-01-01")
 
+View(Scented_all)
+
+df %>% 
+AvgDailyRate <- group_by(date
+)
+
+Unscented_all <- Unscented_all %>% 
+  select("CandleID", "Date", "Rating")
+  filter(Date > "2017-01-01")
+
+View(Unscented_all)
+
+date <- Unscented_all$Date
+Unscented_all <- Unscented_all %>% 
+  select("CandleID", "Date", "Rating")
+  filter("Date" > "2017-01-01") %>% 
+  group_by("Date") %>% 
+  mutate(averageRating = mean(Rating)) %>% 
+  ggplot(
+    aes(x = as.Date("Date"),
+        y = Avg_Rating,
+        shape = as.factor(CandleID),
+        color = as.factor(CandleID),
+        fill = as.factor(CandleID))
+    ) +
+  geom_point(alpha = .5, shape = 1, color = "pink") +
+  scale_x_date(name = "Date", 
+               date_breaks = "6 months",
+               date_labels = "%m-%Y") +
+  geom_smooth(method = "loess") +
+  geom_vline(xintercept = as.numeric(as.Date("2020-01-20"), linetype = "dashed")) +
+  scale_y_continuous(name = "Average Rating") +
+  theme_minimal() +
+  ggtitle("Average Scented Candle Reviews") + 
+  guides(x = guide_axis(n.dodge = 2))
+  
+View(Unscented_all)
+
+
+
+#why did the filtering for dates work for scented but not for unscented? 
+
+class(Unscented_all$Date)
 ```
 
 
@@ -67,10 +121,12 @@ Distinguish scented versus unscented candles using color, shape, and line type (
 
 ```{r combine datasets, eval=FALSE}
 candles_full <- bind_rows(
-	scented = candeles_scented, 
-	unscented = candeles_unscented, 
+	scented = candles_scented, 
+	unscented = candles_unscented, 
 	.id = "Scented"
 )
+
+View(candles_full)
 ```
 
 ```{r}
