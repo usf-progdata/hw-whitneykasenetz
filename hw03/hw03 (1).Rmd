@@ -48,7 +48,7 @@ view(reversed)
 #looks good, now I have a new variable with all the items I need to reverse code. 
 
 #now I need to actually reverse code them
-# here I'm changing all of my "reverse" values in my_green_data. changing 1 values to 5 values and so on. the names of the columns will be whatever they were before with an additional "_r" at the end.
+# here I'm changing all of my "reversed" values in green_data. changing 1 values to 5 values and so on. the names of the columns will be whatever they were before with an additional "_r" at the end.
 green_data_r <- green_data %>% 
   mutate(
     across(all_of(reversed),
@@ -58,40 +58,47 @@ green_data_r <- green_data %>%
 
 view(green_data_r) #why am I not seeing my column for open10_r when I run this code? 
 
-#should I forget about the the original items I just recoded? 
+#I guess I should move forward without using the the original items and only use the recoded ones
 green_data_r <- select(green_data_r, -c("green2", "comp6", "comp7", "comp8", "comp9", "comp10", "intel7", "intel8", "intel9", "intel10", "open7", "open8", "open9", "open10"))
 
 view(green_data_r) #ok, now I only have the recoded versions
+#why do I see open10_r now? I guess problem solved? 
 
+#computing totals for individuals
 
-#let's compute totals for individuals
-
- green_data_totals<- 
-   green_data_r %>%
+green_data_totals <- pomp_green_data %>% 
   rowwise() %>% 
-  mutate(green_tot = sum(c_across(green1:green5), na.rm = TRUE),
-         comp_tot = sum(c_across(comp1:comp5 & comp6_r:comp10_r), na.rm = TRUE),
-         intel_tot = sum(c_across(intel1:intel6 & intel7_r:intel10_r), na.rm =TRUE),
-         open_tot = sum(c_across(open1:open6 & open7_r:open10_r), na.rm = TRUE)
-   ) %>% 
-   select(id, student, green_tot, comp_tot, intel_tot, open_tot)
+  mutate(
+          greenTotal = mean(c_across(c(green1, green2_r, green3:green5)), na.rm = TRUE),
+          compTotal = mean(c_across(c(comp1:comp5, comp6_r:comp10_r)), na.rm = TRUE), 
+          intTotal = mean(c_across(c(intel1:intel6, intel7_r:intel10_r)), na.rm = TRUE),
+          openTotal = mean(c_across(c(open1:open6, open7_r:open10_r)), na.rm = TRUE)) %>% 
+  select(id, student, greenTotal, compTotal, intTotal, openTotal)
 
-view(green_data_totals) #whatever i did for comp, intel, and open didn't work
 ```
 
 ## 3. Rescale the variables so that they go from 0-100 instead of the original range.
-     Name the recaled variables `*_pomp`.
+     Name the rescaled variables `*_pomp`.
 ```{r} 
-new_green_data_r <- green_data_r %>% 
-  mutate(across(c(green1:open9_r &!student), 
+pomp_green_data <- green_data_r %>% 
+  mutate(across(c(green1:open10_r &!student), 
                 ~recode(.x, "1" = 0, "2" = 25, "3" = 50, "4" = 75, "5" = 100), 
                 .names = "{.col}_pomp"))
 
-view(new_green_data_r)  
-#why didn't that work? they look the same as before
 ```
      
   4. Make plots that illustrate the distributions of the 4 POMP-scored variables.
+  
+```{r}
+
+green <- (pomp_green_data$green1_pomp:pomp_green_data$green5_pomp)
+
+pomp_green_data %>% 
+  ggplot() +
+  aes(x = green) +
+  geom_histogram( color = "orange", fill = "orange")
+
+```
   5. Make scatterplots showing the relationships between **green reputation** and each personality trait.
      Include trend lines for **students** and **non-students**.
      What do these plots show?
