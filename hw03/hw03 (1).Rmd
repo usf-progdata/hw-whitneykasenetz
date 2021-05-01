@@ -64,7 +64,13 @@ green_data_r <- select(green_data_r, -c("green2", "comp6", "comp7", "comp8", "co
 view(green_data_r) #ok, now I only have the recoded versions
 #why do I see open10_r now? I guess problem solved? 
 
-#computing totals for individuals
+pomp_data <- green_data_r %>% 
+  mutate(across(c(green1:open10_r &!student), 
+                ~recode(.x, "1" = 0, "2" = 25, "3" = 50, "4" = 75, "5" = 100), 
+                .names = "{.col}_pomp"))
+pomp_data <- pomp_data %>% 
+pomp_green <- pomp_data %>% 
+  c(green2)
 
 green_data_totals <- pomp_green_data %>% 
   rowwise() %>% 
@@ -80,11 +86,7 @@ green_data_totals <- pomp_green_data %>%
 ## 3. Rescale the variables so that they go from 0-100 instead of the original range.
      Name the rescaled variables `*_pomp`.
 ```{r} 
-pomp_green_data <- green_data_r %>% 
-  mutate(across(c(green1:open10_r &!student), 
-                ~recode(.x, "1" = 0, "2" = 25, "3" = 50, "4" = 75, "5" = 100), 
-                .names = "{.col}_pomp"))
-
+#did this above
 ```
      
   4. Make plots that illustrate the distributions of the 4 POMP-scored variables.
@@ -96,7 +98,7 @@ green <- (pomp_green_data$green1_pomp:pomp_green_data$green5_pomp)
 pomp_green_data %>% 
   ggplot() +
   aes(x = green) +
-  geom_histogram( color = "orange", fill = "orange")
+  geom_histogram(fill = "orange")
 
 ```
   5. Make scatterplots showing the relationships between **green reputation** and each personality trait.
