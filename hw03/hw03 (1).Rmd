@@ -56,52 +56,130 @@ green_data_r <- green_data %>%
            .names = "{.col}_r")
   )
 
-view(green_data_r) #why am I not seeing my column for open10_r when I run this code? 
-
+view(green_data_r)
 #I guess I should move forward without using the the original items and only use the recoded ones
 green_data_r <- select(green_data_r, -c("green2", "comp6", "comp7", "comp8", "comp9", "comp10", "intel7", "intel8", "intel9", "intel10", "open7", "open8", "open9", "open10"))
 
 view(green_data_r) #ok, now I only have the recoded versions
-#why do I see open10_r now? I guess problem solved? 
 
-pomp_data <- green_data_r %>% 
-  mutate(across(c(green1:open10_r &!student), 
-                ~recode(.x, "1" = 0, "2" = 25, "3" = 50, "4" = 75, "5" = 100), 
-                .names = "{.col}_pomp"))
+
+
 pomp_data <- pomp_data %>% 
-pomp_green <- pomp_data %>% 
-  c(green2)
+  select(green1_pomp:open10_r_pomp)
 
-green_data_totals <- pomp_green_data %>% 
+pomp
+
+
+green_data_totals <- green_data_r %>% 
   rowwise() %>% 
-  mutate(
-          greenTotal = mean(c_across(c(green1, green2_r, green3:green5)), na.rm = TRUE),
+  mutate(greenTotal = mean(c_across(c(green1, green2_r, green3:green5)), na.rm = TRUE),
           compTotal = mean(c_across(c(comp1:comp5, comp6_r:comp10_r)), na.rm = TRUE), 
           intTotal = mean(c_across(c(intel1:intel6, intel7_r:intel10_r)), na.rm = TRUE),
           openTotal = mean(c_across(c(open1:open6, open7_r:open10_r)), na.rm = TRUE)) %>% 
-  select(id, student, greenTotal, compTotal, intTotal, openTotal)
+  select(id, student, greenTotal, compTotal, intTotal, openTotal) %>% 
+  ungroup()
+
+
+
 
 ```
 
 ## 3. Rescale the variables so that they go from 0-100 instead of the original range.
      Name the rescaled variables `*_pomp`.
 ```{r} 
-#did this above
+pomp <- green_data_r %>% 
+  mutate(across(c(green1:open10_r), 
+                ~recode(.x, "1" = 0, "2" = 25, "3" = 50, "4" = 75, "5" = 100), 
+                .names = "{.col}_pomp", 
+                .before = "greenTotal")) 
+
+#I'm not getting an error message, but the .before argument seems to have no effect. I don't know what's wrong here but it's not a big deal, I think I can just select()
+
+pomp <- select(pomp, green1_pomp:open10_r_pomp)
+
+#ok, moving on
+
+green <- select(pomp, contains("green"))
+
+green <- green %>% 
+  rowwise() %>% 
+  mutate(green, sum = rowSums(green, na.rm = FALSE)) %>% 
+  mutate(green, avg_green = sum/5) %>% 
+  select(-sum)
+
+comp <- select(pomp, contains("comp"))
+
+comp <- comp %>% 
+  rowwise() %>% 
+  mutate(sum = rowSums(comp, na.rm = FALSE)) %>% 
+  mutate(avg_comp = sum/10) %>% 
+  select(-sum)
+  
+intel <- select(pomp, contains("intel"))
+
+intel <- intel %>% 
+  rowwise() %>% 
+  mutate(sum = rowSums(intel, na.rm = FALSE)) %>% 
+  mutate(avg_intel = sum/10) %>% 
+  select(-sum)
+
+open <- select(pomp, contains("open"))
+
+open <- open %>% 
+  rowwise() %>% 
+  mutate(sum = rowSums(open, na.rm = FALSE)) %>% 
+  mutate(avg_open = sum/10) %>% 
+  select(-sum)
+
+avgs <- bind_cols(open, green, intel, comp) %>% 
+  select(contains("avg"))
+
 ```
      
   4. Make plots that illustrate the distributions of the 4 POMP-scored variables.
   
 ```{r}
 
-green <- (pomp_green_data$green1_pomp:pomp_green_data$green5_pomp)
-
-pomp_green_data %>% 
+greenPlot <- avgs %>% 
   ggplot() +
-  aes(x = green) +
+  aes(x = avgs$avg_green) +
   geom_histogram(fill = "orange")
 
+greenPlot 
+
+compPlot <- avgs %>% 
+  ggplot() +
+  aes(x = avgs$avg_comp) +
+  geom_histogram(fill = "blue")
+
+compPlot
+
+openPlot <- avgs %>% 
+  ggplot() +
+  aes(x = avgs$avg_open) +
+  geom_histogram(fill = "pink")
+
+openPlot
+
+intelPlot <- avgs %>% 
+  ggplot() +
+  aes(x = avgs$avg_intel) +
+  geom_histogram(fill = "red")
+
+intelPlot
 ```
   5. Make scatterplots showing the relationships between **green reputation** and each personality trait.
+    Include trend lines for **students** and **non-students**.
+     What do these plots show?
+```{r}
+green_open <- avgs %>% 
+  ggplot(aes(x = avg_green, y = avg_open)) + 
+  geom_point(color = "blue", fill = "blue")
+
+green_open
+
+```
+  
      Include trend lines for **students** and **non-students**.
      What do these plots show?
   6. Compare **green reputation** for students and non-students using a **rainfall plot** (bar + density + data points).
