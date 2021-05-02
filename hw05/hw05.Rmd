@@ -30,11 +30,11 @@ library(dplyr)
 library(tidyverse)
 library(readxl)
 library(gridExtra)
-library(RColorBrewer)
+library(wesanderson)
 library(colorspace)
 
-Scented_all <- read_excel(here::here("hw05/Scented_all.xlsx"))
-Unscented_all <- read_excel(here::here("hw05/Unscented_all.xlsx"))
+scentedAll <- read_excel(here::here("hw05/Scented_all.xlsx"))
+unscentedAll <- read_excel(here::here("hw05/Unscented_all.xlsx"))
 ```
 
 
@@ -42,20 +42,20 @@ Unscented_all <- read_excel(here::here("hw05/Unscented_all.xlsx"))
 
 For each category of candle (scented versus unscented), for all days from **2017-01-01** onward, create a plot showing:
 
-  1. Date on the x axis
-    1. Hint: use `scale_x_date()`
-    2. Format the date labels as `"%m-%Y"`
-    3. Set the date breaks to be "6 months"
-  2. **Average daily rating** of each candle on the y axis
-  3. A smooth trend line (not linear; `method = "loess"`)
-  4. A dashed vertical line at January 01, 2020
-    1. Hint: use `geom_vline()` and set `xintercept = as.numeric(as.Date("2020-01-20"))`
+#  1. Date on the x axis
+#    1. Hint: use `scale_x_date()`
+#    2. Format the date labels as `"%m-%Y"`
+ #   3. Set the date breaks to be "6 months"
+#  2. **Average daily rating** of each candle on the y axis
+#  3. A smooth trend line (not linear; `method = "loess"`)
+#  4. A dashed vertical line at January 01, 2020
+#    1. Hint: use `geom_vline()` and set `xintercept = as.numeric(as.Date("2020-01-20"))`
     
 Be sure to make the plots beautiful.
 
-  1. Address overplotting of points using transparency or shapes.
-  2. Use an appealing theme and color scheme.
-  3. Set appropriately formatted axis titles and main plot title.
+#  1. Address overplotting of points using transparency or shapes.
+#  2. Use an appealing theme and color scheme.
+#  3. Set appropriately formatted axis titles and main plot title.
   4. Place the two plots side by side.
   
 Note: The raw data are **individual reviews** so you will need to compute summary results to get average daily ratings for the desired date range.
@@ -63,73 +63,115 @@ Note: The raw data are **individual reviews** so you will need to compute summar
 Interpret these graphs.
 What do they show about scented candles over the time period?
 
-```{r}
-Scented_all <- Scented_all %>% 
-  select("CandleID", "Date", "Rating", "Review") %>% 
-  filter(Date > "2017-01-01")
+```{r scented plot} 
+scentedAll <- scentedAll %>% 
+  mutate(CandleID = as.factor(CandleID),
+         Date = as.Date(Date))
 
-View(Scented_all)
+Date <- scentedAll$Date
 
-df %>% 
-AvgDailyRate <- group_by(date
-)
-
-Unscented_all <- Unscented_all %>% 
-  select("CandleID", "Date", "Rating")
-  filter(Date > "2017-01-01")
-
-View(Unscented_all)
-
-date <- Unscented_all$Date
-Unscented_all <- Unscented_all %>% 
-  select("CandleID", "Date", "Rating")
-  filter("Date" > "2017-01-01") %>% 
-  group_by("Date") %>% 
-  mutate(averageRating = mean(Rating)) %>% 
+plotScented <- scentedAll %>%
+  filter(Date >= "2017-01-01") %>%
+  group_by(Date) %>%
+  mutate(avgRating = mean(Rating)) %>%
   ggplot(
-    aes(x = as.Date("Date"),
-        y = Avg_Rating,
-        shape = as.factor(CandleID),
-        color = as.factor(CandleID),
-        fill = as.factor(CandleID))
+    aes(x = Date,
+        y = avgRating)
     ) +
-  geom_point(alpha = .5, shape = 1, color = "pink") +
+  geom_jitter(alpha = 1, 
+             shape = ".", 
+             color = "royalblue1",
+             position = "jitter") +
   scale_x_date(name = "Date", 
                date_breaks = "6 months",
-               date_labels = "%m-%Y") +
-  geom_smooth(method = "loess") +
-  geom_vline(xintercept = as.numeric(as.Date("2020-01-20"), linetype = "dashed")) +
-  scale_y_continuous(name = "Average Rating") +
-  theme_minimal() +
-  ggtitle("Average Scented Candle Reviews") + 
+               date_labels = "%m-%Y",
+               position = "bottom") +
+  geom_smooth(method = "loess",
+              color = "royalblue4") +
+  geom_vline(xintercept = as.numeric(as.Date("2020-01-20")), 
+                                     linetype = "dashed",
+             color = "darkgreen") +
+  scale_y_continuous(name = "Average Daily Rating") +
+  theme_grey() +
+  ggtitle("Scented Candle Ratings by Date") + 
   guides(x = guide_axis(n.dodge = 2))
-  
-View(Unscented_all)
 
-
-
-#why did the filtering for dates work for scented but not for unscented? 
-
-class(Unscented_all$Date)
+print(plotScented)
 ```
 
+```{r unscented plot}
+Date <- unscentedAll$Date
+
+unscentedAll <- unscentedAll %>% 
+  mutate(CandleID = as.factor(CandleID),
+         Date = as.Date(Date)) 
+
+plotUnscented <- unscentedAll %>%
+  filter(Date >= "2017-01-01") %>%
+  group_by(Date) %>%
+  mutate(avgRating = mean(Rating)) %>%
+  ggplot(
+    aes(x = as.Date(Date),
+        y = avgRating)
+    ) +
+  geom_jitter(alpha = 1, 
+             shape = ".", 
+             color = "royalblue1",
+             position = "jitter") +
+  scale_x_date(name = "Date", 
+               date_breaks = "6 months",
+               date_labels = "%m-%Y",
+               position = "bottom") +
+  geom_smooth(method = "loess",
+              color = "royalblue4", 
+              na.rm = FALSE) +
+  geom_vline(xintercept = as.numeric(as.Date("2020-01-20")), 
+                                     linetype = "dashed",
+             color = "darkgreen") +
+  scale_y_continuous(name = "Average Daily Rating") +
+  theme_grey() +
+  ggtitle("Unscented Candle Ratings by Date") + 
+  guides(x = guide_axis(n.dodge = 2))
+
+print(plotUnscented)
+
+```
 
 ## Part 2: Combined plot
 
 Combine the two datasets into one and make a plot similar to above, but showing both unscented and scented candles.
 Distinguish scented versus unscented candles using color, shape, and line type (for the trend lines).
 
-```{r combine datasets, eval=FALSE}
-candles_full <- bind_rows(
-	scented = candles_scented, 
-	unscented = candles_unscented, 
+```{r combined plot}
+
+candlesFull <- bind_rows(
+	scented = scentedAll, 
+	unscented = unscentedAll, 
 	.id = "Scented"
 )
 
-View(candles_full)
-```
+plotFull <- candlesFull %>% 
+  filter(Date >= "2017-01-01") %>% 
+  group_by(Date, Scented) %>% 
+  mutate(avgRating = mean(Rating)) %>% 
+ggplot(
+  aes(x=as.Date(Date),
+      y = avgRating,
+      shape = Scented, 
+      color = Scented,
+      fill = Scented)
+) +
+  geom_jitter(alpha = .1, shape = 1, height = .05) +
+  theme(legend.title = element_blank(), plot.title = element_text(size=9)) +
+  scale_color_manual(values=wes_palette(n=3, name= "Royal1")) +
+  scale_x_date(name = "Date", date_breaks = "6 months") +
+  geom_smooth(method = "loess", se = FALSE) + 
+  geom_vline(xintercept = as.numeric(as.Date("2021-01-20")), linetype = "dashed") +
+  scale_y_continuous(name = "Average Rating") +
+  ggtitle("Average Candle Ratings per Day for Scented and Unscented Candles") +
+  guides(x = guide_axis(n.dodge = 2))
 
-```{r}
+print(plotFull)
 
 ```
 
@@ -157,6 +199,9 @@ Hints:
   3. Use the function below to detect "no smell"-related text in the `Review` column.
 
 ```{r no scent function, include=FALSE}
+
+review <- str_no_scent(scentedAll$Review)
+
 str_no_scent <- function(x){
   as.numeric(
   	case_when(
@@ -174,6 +219,22 @@ str_no_scent <- function(x){
   	)
   )
 }
+
+scentedReviews <- scentedAll %>% 
+  filter(Date >= "2019-01-01") %>%
+  mutate(month = lubridate::floor_date(Date, "month"),
+         noscent = str_no_scent(Review)) %>% 
+  group_by(as.Date(month), noscent) %>% 
+  ggplot() +  aes(x = as.Date(month), y = (..count..)/sum(..count..)) +
+  geom_bar(alpha = .4) +
+  stat_summary(aes(y = noscent), fun.data = mean_cl_normal) +
+  scale_x_date(name = "Month", date_labels = "%b", date_breaks = "month") + 
+  scale_y_continuous(name = "Proportion of reviews mentioning 'no scent'") +
+  guides(x = guide_axis(n.dodge = 2), color = guide_legend(title = "Year"), fill = guide_legend(title = "Year")) +
+  labs(title = "Proportion of reviews mentioning 'no scent'") +
+  theme_classic()
+
+print(scentedReviews)
 ```
 
 ```{r}

@@ -64,12 +64,6 @@ view(green_data_r) #ok, now I only have the recoded versions
 
 
 
-pomp_data <- pomp_data %>% 
-  select(green1_pomp:open10_r_pomp)
-
-pomp
-
-
 green_data_totals <- green_data_r %>% 
   rowwise() %>% 
   mutate(greenTotal = mean(c_across(c(green1, green2_r, green3:green5)), na.rm = TRUE),
@@ -102,15 +96,13 @@ pomp <- select(pomp, green1_pomp:open10_r_pomp)
 green <- select(pomp, contains("green"))
 
 green <- green %>% 
-  rowwise() %>% 
-  mutate(green, sum = rowSums(green, na.rm = FALSE)) %>% 
-  mutate(green, avg_green = sum/5) %>% 
+  mutate(sum = rowSums(green, na.rm = FALSE)) %>% 
+  mutate(avg_green = sum/5) %>% 
   select(-sum)
 
 comp <- select(pomp, contains("comp"))
 
 comp <- comp %>% 
-  rowwise() %>% 
   mutate(sum = rowSums(comp, na.rm = FALSE)) %>% 
   mutate(avg_comp = sum/10) %>% 
   select(-sum)
@@ -118,7 +110,6 @@ comp <- comp %>%
 intel <- select(pomp, contains("intel"))
 
 intel <- intel %>% 
-  rowwise() %>% 
   mutate(sum = rowSums(intel, na.rm = FALSE)) %>% 
   mutate(avg_intel = sum/10) %>% 
   select(-sum)
@@ -126,12 +117,11 @@ intel <- intel %>%
 open <- select(pomp, contains("open"))
 
 open <- open %>% 
-  rowwise() %>% 
   mutate(sum = rowSums(open, na.rm = FALSE)) %>% 
   mutate(avg_open = sum/10) %>% 
   select(-sum)
 
-avgs <- bind_cols(open, green, intel, comp) %>% 
+avgs <- bind_cols(open, green, intel) %>% 
   select(contains("avg"))
 
 ```
@@ -175,6 +165,7 @@ intelPlot
 green_open <- avgs %>% 
   ggplot(aes(x = avg_green, y = avg_open)) + 
   geom_point(color = "blue", fill = "blue")
+
 
 green_open
 
