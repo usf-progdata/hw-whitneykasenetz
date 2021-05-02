@@ -80,6 +80,8 @@ green <- c(green_data_r, "green1":"green5")
    select(id, student, green_tot, comp_tot, intel_tot, open_tot)
 
 view(green_data_totals)
+
+
 ```
 
 ## 3. Rescale the variables so that they go from 0-100 instead of the original range.
