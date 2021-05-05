@@ -1,0 +1,183 @@
+---
+title: "Final_project"
+author: "Whitney Kasenetz"
+date: "4/29/2021"
+output: html_document
+---
+
+```{r}
+library(tidyverse)
+library(janitor) 
+library(readxl)
+
+#assigning my data to objects
+
+AQquestions <- read_excel("AQquestions.xlsx", 
+    col_names = FALSE)
+
+AQanswers <- read_excel("AQanswers.xlsx", 
+    col_names = FALSE)
+
+ASRSanswers <- read_excel("ASRSanswers.xlsx", 
+    col_names = FALSE)
+
+ASRSquestions <- read_excel("ASRSquestoins.xlsx",
+    col_names = FALSE)
+
+PDIquestions <- read_excel("PDIquestions.xlsx",
+    col_names = FALSE)
+
+PDIanswers <- read_excel("PDIanswers.xlsx",
+    col_names = FALSE)
+```
+
+```{r}
+# changing column names for all my data
+
+ASRSquestions <- ASRSquestions %>% 
+  transmute(ASRSqNumber = ASRSquestions$...1, ASRSquestion = ASRSquestions$...2)
+
+AQquestions <- AQquestions %>% 
+  transmute(AQquestion = AQquestions$...2, AQqNumber = AQquestions$...1)
+
+AQanswers <- na.omit(AQanswers)
+
+AQanswers <- AQanswers %>% 
+  row_to_names(row_number = 1)
+
+ASRSanswers <- na.omit(ASRSanswers)
+
+ASRSanswers <- ASRSanswers %>% 
+  row_to_names(row_number = 1)
+
+PDIanswers <- PDIanswers %>% 
+  na.omit() %>% 
+  row_to_names(row_number = 1)
+
+PDIquestions <- PDIquestions %>% 
+  transmute(PDIqNumber = PDIquestions$...1, PDIquestion = PDIquestions$...2)
+
+#ok I think things are looking better now
+```
+
+```{r} 
+# I need 3 subscores for the PDI. It is a shizotypal scale that measures delusional ideation. Each question has 4 values per participant. First, participants answer "yes" or "no" for each question. Then, for each question they rate how much they believe it, how much stress they feel about it, and how much they think about it, all on scales of 1-5  The 3 sub-categories are called conviction, distress, and preocupation. 
+
+PDIyesNo <- PDIanswers
+
+PDIyesNo <- PDIyesNo %>% 
+  select(contains("NY"))
+
+PDIyesNo <- PDIyesNo %>% mutate_if(is.character,as.numeric)
+
+PDIsum <- as.data.frame(rowSums(PDIyesNo, na.rm = FALSE))
+
+PDIsum <- PDIsum %>% 
+  mutate(id = c(1:925))
+
+PDIyesNo <- PDIyesNo %>% 
+   mutate(id = c(1:925), .before = "PDINY01")
+
+PDIyesNo_complete <- PDIyesNo %>% 
+  full_join(PDIsum, by = "id")
+
+PDIyesNo_complete <- PDIyesNo_complete %>% 
+  rename(PDIsum = `rowSums(PDIyesNo, na.rm = FALSE)`)
+
+#distress
+
+PDI_distress <- PDIanswers %>% 
+  select(contains("PDIDI")) %>% 
+  mutate(id = c(1:925), .before = "PDIDI01")
+
+PDI_distress <- PDI_distress %>% 
+  rowwise() %>% 
+  mutate(distressMean = mean(PDIDI01:PDIDI21))
+
+#conviction
+
+PDI_conviction <- PDIanswers %>% 
+  select(contains("PDICO")) %>% 
+   mutate(id = c(1:925), .before = "PDICO01")
+
+PDI_conviction <- PDI_conviction %>% 
+  rowwise() %>% 
+  mutate(convictionMean = mean(PDICO01:PDICO21))
+
+#preocupation
+
+PDI_preocupation <- PDIanswers %>% 
+  select(contains("PDIPR")) %>% 
+   mutate(id = c(1:925), .before = "PDIPR01")
+
+PDI_preocupation <- PDI_preocupation %>% 
+  rowwise() %>% 
+  mutate(preocupationMean = mean(PDIPR01:PDIPR21))
+
+#putting sub-score means and Y/N sum together in a data frame
+
+PDI_complete <- data.frame(PDI_preocupation$preocupationMean, PDI_conviction$convictionMean, PDI_distress$distressMean, PDIyesNo_complete$PDIsum) %>% 
+  rename(Preocupation_PDI = PDI_preocupation.preocupationMean, Conviction_PDI = PDI_conviction.convictionMean, Distress_PDI = PDI_distress.distressMean, Sum_PDI = PDIyesNo_complete.PDIsum)
+
+```
+
+```{r} 
+# I need to reverse code some questions for the Autism Quotient, the AQ. Then compute sums for each participant
+
+AQanswers <- as.data.frame(AQanswers)
+
+reverseCoded <- select(AQanswers, c(AQ01, AQ03, AQ08, AQ10, AQ11, AQ14, AQ15, AQ17, AQ24, AQ25, AQ27, AQ28, AQ29, AQ30, AQ31, AQ32, AQ34, AQ36, AQ37, AQ38, AQ40, AQ44, AQ47, AQ48, AQ49, AQ50))
+
+reverseCodedCols <-  c('AQ01', 'AQ03', 'AQ08', 'AQ10', 'AQ11', 'AQ14', 'AQ15', 'AQ17', 'AQ24', 'AQ25', 'AQ27', 'AQ28', 'AQ29', 'AQ30', 'AQ31', 'AQ32', 'AQ34', 'AQ36', 'AQ37', 'AQ38', 'AQ40', 'AQ44', 'AQ47', 'AQ48', 'AQ49', 'AQ50')
+
+class(AQanswers)
+str(AQanswers)
+
+ # reverseCoded <- recode(reverseCoded, "1" = 2, "2" = 1)
+
+AQanswers_r <-
+  mutate(AQanswers,
+    across(AQ01:AQ50, as.numeric)
+  ) %>% 
+    mutate(across(all_of(reverseCodedCols), recode, `1` = 0, `0` = 1 ))
+
+
+
+AQ_sums <- as.character(AQ_sums)
+
+AQ_sums <- AQanswers_r %>% 
+  rowwise() %>% 
+  mutate(AQsum = sum(across(AQ01:AQ50))) #good
+
+
+#str(AQanswers_r)
+
+#AQanswers_r <- as.numeric(AQanswers_r)
+
+#AQ_sum1 <- AQanswers_r %>% 
+ # rowSums()
+
+#AQanswers_r <- AQanswers_r %>% 
+ # mutate(id = c(1:925))
+
+#AQ_sum2 <- as.data.frame(AQ_sum1)
+
+#AQ_sum2 <- AQ_sum2 %>% 
+#  mutate(AQ_sum2, id = c(1:925))
+
+#AQanswers_done <- full_join(AQ_sum2, AQanswers_r, by = "id")
+
+#str(AQanswers_r)
+
+#AQ_sums <- AQanswers_r %>% 
+#  rowwise() %>% 
+#  mutate(AQsum = sum(across(all_of(AQanswers_r))))
+
+```
+
+```{r}
+#Now I need to compute total scores for the ASRS. I also want to create subscores for hyperactivity and inattentiveness
+
+
+
+```

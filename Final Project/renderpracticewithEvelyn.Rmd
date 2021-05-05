@@ -1,0 +1,31 @@
+---
+title: "renderpractice"
+author: "Whitney Kasenetz"
+date: "5/2/2021"
+output:
+  word_document: default
+  html_document: default
+  pdf_document: default
+---
+```{r}
+library(devtools)
+library(cli)
+
+
+
+# create a new file for table 
+write.csv(PDIanswers, file = 'newdatasaved.csv')
+
+#put this at the end of your report 
+devtools::session_info()
+
+session_info()
+
+```
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+This is my analysis and conclusions. Blah blah blah 
