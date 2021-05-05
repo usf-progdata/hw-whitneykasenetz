@@ -230,9 +230,11 @@ green_comp <- avgs %>%
 
 green_comp
 
-wrap_plots(green_comp, green_open, green_intel)
+plotplotplot <- wrap_plots(green_comp, green_open, green_intel)
 
-ggsave("greenopen.png", height = 6, width = 9) #save 
+plotplotplot
+
+ggsave("plotplotplot.png", height = 6, width = 9) #save 
 
 #getwd() to see file path (work directory)
 #setwd() to give the path you want 
