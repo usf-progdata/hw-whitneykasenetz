@@ -1,0 +1,16 @@
+---
+title: "README"
+author: "Whitney Kasenetz"
+date: "5/5/2021"
+output: html_document
+---
+# Final Project
+
+###  Participants: this sample is a diverse population of 925 males in Stockholm, Sweden aged 18-35 years who are healthy and without any diagnosed psychiatric disorders. They were recruited through social media advertisements.
+
+#### The purpose of the study was to investigate how psychosis-proneness relates to ADHD and ASD. Specifically, they were interested in the trait co-morbidity of the subclinical symptoms of these disorders.
+
+*Attention Deficit/Hyperactivity Disorder (ADHD) is measured with the World Health Organization Adult ADHD Self-Report Scale (ASRS). It is an 18 question measure that is often used as a diagnostic tool for ADHD.
+*The personality trait of psychosis-proneness is measured with the Peters et al. Delusion Inventory. It is a 21-item questionnaire that measures delusional ideation and the perceived intensity of 3 known factors: preoccupation with delusional thoughts, distress about those thoughts, and conviction of the thoughts. Participants answer "Yes" or "No" for each of the 21 items, and then provide 3 sub-scores for each item: conviction, preoccupation, and distress. Those with high scores are more likely to develop clinical psychotic disorders. 
+*Autistic traits are measured with the Autism Spectrum Quotient (AQ), a widely used, 50-item questionnaire that measures aspects of Autism such as social interaction impairment, communicative impulsiveness, focus on details, and strict adherence to routines. 
+

@@ -11,7 +11,8 @@ library(dplyr)
 library(ggplot2)
 library(tidyverse)
 library(psychTools)
-
+library(patchwork)
+library(ggdist)
 ```
 
 ```{r}
@@ -27,14 +28,11 @@ green_data %>%
 #What's unusual here is that minimum values are "-99" for several of these items. I'm going to change the "-99" values to "NA."
 ```
 ```{r}
- 
-my_green_data <- green_data %>% 
+green_data <- green_data %>% 
   mutate(across(everything(), 
-                ~ na_if(.x, -99)))
+                ~ na_if(.x, -99))) #changing green_data's -99 values to NA
 
-view(my_green_data)
-#Now there are no more "-99"s in my data.
-
+view(green_data)
 ```
 ## 2. Compute total scores for the four scales. Recode variables as needed.
 
@@ -42,82 +40,246 @@ view(my_green_data)
 reversed <- dictionary %>% 
   filter(Keying < 0) %>% 
   pull(Item)
-#making a new variable that filters those items that have a Keying less than 0 out of the dictionary. I should get 14 reverse coded variables.
+#making a new variable that filters those items that have a Keying less than 0 out of the dictionary. This will give me all the reverse coded variables, and I should get 14 of those. 
 
-#select vs pull. pull pulls the pencil out of the pencil bag
-#if I used select instead of pull, the item names would remain in a data frame "reversed"
 view(reversed)
-#looks good
+class(reversed)
+#looks good, now I have a new variable with all the items I need to reverse code. 
 
-#now I need to reverse code them
-green_data_r <- my_green_data %>% 
+#now I need to actually reverse code them
+# here I'm changing all of my "reversed" values in green_data. changing 1 values to 5 values and so on. the names of the columns will be whatever they were before with an additional "_r" at the end.
+green_data_r <- green_data %>% 
   mutate(
     across(all_of(reversed),
            ~ recode(.x, "1" = 5, "2" = 4, "3" = 3, "4" = 4, "5" = 1),
            .names = "{.col}_r")
   )
 
-#I keep getting error messages here!
-#**just keep swimming**
-
-#It looks like @samanthasheppard had a similar issue, so I'm going to borrow her solution so I can move forward until I figure out a better way. 
-view(reversed)
-
-green_data_r <- my_green_data %>%
-  mutate(
-    green2_r = recode(green2, "1" = "5", "2" = "4", "3" = "3", "4" = "2", "5" = "1"),
-    comp6_r = recode(comp6, "1" = "5", "2" = "4", "3" = "3", "4" = "2", "5" = "1"),
-    comp7_r = recode(comp7, "1" = "5", "2" = "4", "3" = "3", "4" = "2", "5" = "1"),
-    comp8_r = recode(comp8, "1" = "5", "2" = "4", "3" = "3", "4" = "2", "5" = "1"),
-    comp9_r = recode(comp9, "1" = "5", "2" = "4", "3" = "3", "4" = "2", "5" = "1"),
-    comp10_r = recode(comp10, "1" = "5", "2" = "4", "3" = "3", "4" = "2", "5" = "1"),
-    intel7_r = recode(intel7, "1" = "5", "2" = "4", "3" = "3", "4" = "2", "5" = "1"),
-    intel8_r = recode(intel8, "1" = "5", "2" = "4", "3" = "3", "4" = "2", "5" = "1"),
-    intel9_r = recode(intel9, "1" = "5", "2" = "4", "3" = "3", "4" = "2", "5" = "1"),
-    intel10_r = recode(intel10, "1" = "5", "2" = "4", "3" = "3", "4" = "2", "5" = "1"),
-    open7_r = recode(open7, "1" = "5", "2" = "4", "3" = "3", "4" = "2", "5" = "1"),
-    open8_r = recode(open8, "1" = "5", "2" = "4", "3" = "3", "4" = "2", "5" = "1"),
-    open9_r = recode(open9, "1" = "5", "2" = "4", "3" = "3", "4" = "2", "5" = "1"),     
-    open10_r = recode(open10, "1" = "5", "2" = "4", "3" = "3", "4" = "2", "5" = "1")
-  )
-  
+str(green_data_r)
 view(green_data_r)
-#now I see the new variables coded properly but I can't find my new variable "open10_r" which is last on the list I just made. Why? 
+#I guess I should move forward without using the the original items and only use the recoded ones
+green_data_r <- select(green_data_r, -c("green2", "comp6", "comp7", "comp8", "comp9", "comp10", "intel7", "intel8", "intel9", "intel10", "open7", "open8", "open9", "open10"))
 
-#let's compute total scores for each person
+view(green_data_r) #ok, now I only have the recoded versions
 
-new_green_data_r <- green_data_r %>% 
+
+
+green_data_totals <- green_data_r %>% 
   rowwise() %>% 
-  mutate(
-    .id = id,
-    green_total = sum(c_across(green1:green5), na.rm = TRUE),
-    comp_total = sum(c_across(comp1:comp10), na.rm = TRUE), 
-    intel_total = sum(c_across(intel1:intel10), na.rm = TRUE),
-    open_total = sum(c_across(open1:open10), na.rm = TRUE)
-  )
+  mutate(greenTotal = mean(c_across(c(green1, green2_r, green3:green5)), na.rm = TRUE),
+          compTotal = mean(c_across(c(comp1:comp5, comp6_r:comp10_r)), na.rm = TRUE), 
+          intTotal = mean(c_across(c(intel1:intel6, intel7_r:intel10_r)), na.rm = TRUE),
+          openTotal = mean(c_across(c(open1:open6, open7_r:open10_r)), na.rm = TRUE)) %>% 
+  select(id, student, greenTotal, compTotal, intTotal, openTotal) %>% 
+  ungroup()
 
-view(new_green_data_r)
-#I'm not seeing my new totals variables. Don't know what went wrong there
+
+
 
 ```
 
 ## 3. Rescale the variables so that they go from 0-100 instead of the original range.
-     Name the recaled variables `*_pomp`.
+     Name the rescaled variables `*_pomp`.
 ```{r} 
-new_green_data_r <- new_green_data_r %>% 
-  mutate(across(c(green1:open9_r &!student), 
+pomp <- green_data_r %>% 
+  mutate(across(c(green1:open10_r), 
                 ~recode(.x, "1" = 0, "2" = 25, "3" = 50, "4" = 75, "5" = 100), 
-                .names = "{.col}_pomp"))
+                .names = "{.col}_pomp", 
+                .before = "greenTotal")) 
 
-view(new_green_data_r)
-#why didn't that work? they look the same as before
+#I'm not getting an error message, but the .before argument seems to have no effect. I don't know what's wrong here but it's not a big deal, I think I can just select()
+
+pomp <- select(pomp, green1_pomp:open10_r_pomp)
+
+#ok, moving on
+
+green <- select(pomp, contains("green"))
+
+green <- green %>% 
+  mutate(sum = rowSums(green, na.rm = FALSE)) %>% 
+  mutate(avg_green = sum/5) %>% 
+  select(-sum)
+
+comp <- select(pomp, contains("comp"))
+
+comp <- comp %>% 
+  mutate(sum = rowSums(comp, na.rm = FALSE)) %>% 
+  mutate(avg_comp = sum/10) %>% 
+  select(-sum)
+  
+intel <- select(pomp, contains("intel"))
+
+intel <- intel %>% 
+  mutate(sum = rowSums(intel, na.rm = FALSE)) %>% 
+  mutate(avg_intel = sum/10) %>% 
+  select(-sum)
+
+open <- select(pomp, contains("open"))
+
+open <- open %>% 
+  mutate(sum = rowSums(open, na.rm = FALSE)) %>% 
+  mutate(avg_open = sum/10) %>% 
+  select(-sum)
+
+avgs <- bind_cols(open, green, comp, intel) %>% 
+  select(contains("avg"))
+
 ```
      
   4. Make plots that illustrate the distributions of the 4 POMP-scored variables.
+  
+```{r}
+
+greenHistoPlot <- avgs %>% 
+  ggplot() +
+  aes(x = avgs$avg_green) +
+  geom_histogram(fill = "orange")
+
+greenHistoPlot 
+
+compHistoPlot <- avgs %>% 
+  ggplot() +
+  aes(x = avgs$avg_comp) +
+  geom_histogram(fill = "blue")
+
+compHistoPlot
+
+openHistoPlot <- avgs %>% 
+  ggplot() +
+  aes(x = avgs$avg_open) +
+  geom_histogram(fill = "pink")
+
+openHistoPlot
+
+intelHistoPlot <- avgs %>% 
+  ggplot() +
+  aes(x = avgs$avg_intel) +
+  geom_histogram(fill = "red")
+
+intelHistoPlot
+
+wrap_plots(intelHistoPlot, openHistoPlot, greenHistoPlot, compHistoPlot)
+```
   5. Make scatterplots showing the relationships between **green reputation** and each personality trait.
+    Include trend lines for **students** and **non-students**.
+     What do these plots show?
+```{r}
+
+green_data$student <-
+  recode_factor(green_data$student,
+                "1" = "not a student",
+                "2" = "student")
+
+#didn't include the student column in my new data frame, so I guess I will merge the data frames to get the student column in there
+avgs <- avgs %>% 
+  mutate(id = c(1:263)) #creating an "id" column to merge them by
+
+green_data <- green_data %>% 
+  select(-id) #I want the id numbers to be 1:373 rather than the numbers the data came with
+
+green_data <- green_data %>% 
+  mutate(id = c(1:263))
+           
+avgs <- avgs %>% 
+  full_join(green_data, by = "id")
+
+avgs <- avgs %>% 
+  select(id, student.x, contains("avg"))
+
+avgs <- na.omit(avgs)
+green_data <- na.omit(green_data)
+
+#I'm sure there was a better way to get the "student" column into my "avgs" data frame, but at least what I did seemed to work
+
+green_open <- avgs %>% 
+  ggplot(aes(x = avg_green, y = avg_open, color = student.x)) + 
+  geom_point(alpha = .5, color = "blue", fill = "blue") +
+  geom_smooth(aes(group = student.x), se = FALSE) +
+  theme(legend.position = "none") +
+  scale_y_continuous("Openness to Experience", limits = c(30,100)) +
+  scale_x_continuous("Green Reputation")
+  
+
+green_open
+
+green_intel <- avgs %>% 
+  ggplot(aes(x = avg_green, y = avg_intel, color = student.x)) +
+  geom_point(alpha = .5,
+             color = "blue",
+             fill = "blue") +
+  geom_smooth(aes(group = student.x), se = FALSE) +
+  scale_y_continuous("Intellectual Curiosity", limits = c(30,100)) +
+  scale_x_continuous("Green Reputation") +
+  theme(legend.position = "top",
+        legend.title = element_text(size = 5), 
+        legend.text = element_text(size = 5)) +
+ 
+
+green_intel
+
+green_comp <- avgs %>% 
+  ggplot(aes(x = avg_green,
+             y = avg_comp,
+             color = student.x)) +
+  geom_point(alpha = .5,
+             color = "blue",
+             fill = "blue") +
+  geom_smooth(aes(group = student.x), se = FALSE) +
+  scale_y_continuous("Compassion", limits = c(30,100)) +
+  scale_x_continuous("Green Reputation") +
+  theme(legend.position = "none")
+
+green_comp
+
+plotplotplot <- wrap_plots(green_comp, green_open, green_intel)
+
+plotplotplot
+
+ggsave("plotplotplot.png", height = 6, width = 9) #save 
+
+#getwd() to see file path (work directory)
+#setwd() to give the path you want 
+```
+  
      Include trend lines for **students** and **non-students**.
      What do these plots show?
+```{r} 
+# There is a similar relationship between Green Reputation and Compassion for students and non-students.
+# There is a positive correlation between Green Reputation and Openness to Experience for students, but there is no visible correlation between Green Reputation and Openness for non-students.
+#Intellectual curiosity has a strong positive correlation with Green Reputation for students, but for non-students there is a weaker negative correlation. 
+```
   6. Compare **green reputation** for students and non-students using a **rainfall plot** (bar + density + data points).
+  
+```{r}
+ggplot(avgs) +
+  aes(x = avg_green, 
+      y = student.x, 
+      color = student.x,
+      fill = student.x) +
+  geom_jitter(width = 0, height = .15, alpha = .3)+
+  geom_boxplot(color = "black",
+               alpha = .3,
+               width = .2,
+               size = .5) +
+  ggdist::stat_slab(color = "black", 
+    height = .3, 
+    alpha = .5) + 
+  xlab("Green Reputation") +
+  theme(legend.position = "none") +
+  theme_minimal()
+
+```
   7. Compute a summary table of means, SDs, medians, minima, and maxima for the four total scores for students and non-students.
+```{r}
+summaryTable <- avgs %>% 
+  group_by(student.x) %>% 
+  summarize(across(avg_open:avg_intel,
+      list(mean = ~mean(.x),
+           sd = ~ sd(.x),
+           min = ~min(.x),
+           max = ~max(.x))))
+
+summaryTable
+```
   
 In your assignment, prepare an RMarkdown file that includes both the coding and (for 4-7) narrative descriptions of your results.

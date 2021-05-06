@@ -1,0 +1,71 @@
+---
+title: "CLASS_PRACTICE"
+author: "Antonietta"
+date: "2/9/2021"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+library(psych)
+psych::bfi
+```
+
+1. Use the `psych::bfi` dataset.
+2. Compute mean scores for each of the Big Five traits for each person.
+3. Keep just Big Five scores, gender, age, and education.
+4. Summarize the mean, standard deviation, minimum, and maximum values for the Big Five scores separately by gender groups.
+5. Summarize the mean, standard deviation, minimum, and maximum values for the Big Five scores separately by educational level groups.
+
+```{r, mutate and mean scores}
+# Computing each mean score per person 
+
+bfi_scored <- psych::bfi %>% 
+  rowwise() %>%
+  mutate(agree = mean(c_across(A1:A5), na.rm = TRUE), 
+         con = mean(c_across(C1:C5), na.rm =  TRUE),
+         extra = mean(c_across(E1:E5), na.rm = TRUE),
+         neuro = mean(c_across(N1:N5), na.rm = TRUE), 
+         open = mean(c_across(O1:O5), na.rm = TRUE), )%>%
+    select(gender, education, age, agree, con, extra, neuro, open) 
+  
+# Sumarize by gender
+  
+bfi_scored %>% 
+  group_by(gender) %>%
+  summarize(across(agree:open, 
+                   list(mean = mean , sd = sd , max = max , min = min)
+                   )
+            ) 
+
+
+  # Sumarize by education 
+
+bfi_scored %>%  
+  group_by(education) %>%
+  summarize(across(agree:open,
+                   list(mean = mean , sd = sd , max = max , min = min)
+                   )
+            )
+  
+
+```
+
+## rowwise tells r to do things differently by row, trating each row as its own group
+## group_by separates data by group variable 
+# head will return the table you made 
+
+
+```{r}
+
+
+```
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
