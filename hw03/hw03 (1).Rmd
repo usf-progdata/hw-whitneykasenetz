@@ -212,7 +212,8 @@ green_intel <- avgs %>%
   scale_x_continuous("Green Reputation") +
   theme(legend.position = "top",
         legend.title = element_text(size = 5), 
-        legend.text = element_text(size = 5))
+        legend.text = element_text(size = 5)) +
+ 
 
 green_intel
 

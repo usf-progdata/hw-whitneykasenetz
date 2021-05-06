@@ -9,30 +9,31 @@ output: html_document
 library(tidyverse)
 library(janitor) 
 library(readxl)
+library(here)
+library(patchwork)
 
-#assigning my data to objects
+#bring in data
 
-AQquestions <- read_excel("AQquestions.xlsx", 
+AQquestions <- read_excel(here::here("data", "AQquestions.xlsx"), col_names = FALSE)
+
+AQanswers <- read_excel(here::here("data", "AQanswers.xlsx"), 
     col_names = FALSE)
 
-AQanswers <- read_excel("AQanswers.xlsx", 
+ASRSanswers <- read_excel(here::here("data", "ASRSanswers.xlsx"), 
     col_names = FALSE)
 
-ASRSanswers <- read_excel("ASRSanswers.xlsx", 
+ASRSquestions <- read_excel(here::here("data", "ASRSquestoins.xlsx"),
     col_names = FALSE)
 
-ASRSquestions <- read_excel("ASRSquestoins.xlsx",
+PDIquestions <- read_excel(here::here("data", "PDIquestions.xlsx"),
     col_names = FALSE)
 
-PDIquestions <- read_excel("PDIquestions.xlsx",
-    col_names = FALSE)
-
-PDIanswers <- read_excel("PDIanswers.xlsx",
+PDIanswers <- read_excel(here::here("data", "PDIanswers.xlsx"),
     col_names = FALSE)
 ```
 
 ```{r}
-# changing column names for all my data
+# modify column names for all the data
 
 ASRSquestions <- ASRSquestions %>% 
   transmute(ASRSqNumber = ASRSquestions$...1, ASRSquestion = ASRSquestions$...2)
@@ -41,12 +42,10 @@ AQquestions <- AQquestions %>%
   transmute(AQquestion = AQquestions$...2, AQqNumber = AQquestions$...1)
 
 AQanswers <- na.omit(AQanswers)
-
 AQanswers <- AQanswers %>% 
   row_to_names(row_number = 1)
 
 ASRSanswers <- na.omit(ASRSanswers)
-
 ASRSanswers <- ASRSanswers %>% 
   row_to_names(row_number = 1)
 
@@ -56,27 +55,23 @@ PDIanswers <- PDIanswers %>%
 
 PDIquestions <- PDIquestions %>% 
   transmute(PDIqNumber = PDIquestions$...1, PDIquestion = PDIquestions$...2)
-
-#ok I think things are looking better now
 ```
 
 ```{r} 
-# I need 3 subscores for the PDI. It is a shizotypal scale that measures delusional ideation. Each question has 4 values per participant. First, participants answer "yes" or "no" for each question. Then, for each question they rate how much they believe it, how much stress they feel about it, and how much they think about it, all on scales of 1-5  The 3 sub-categories are called conviction, distress, and preocupation. 
+#Each PDI question has 4 values per participant. First, participants answer "yes" or "no" for each question. Then, for each question they rate 3 sub-scales on a 1-5 rating scale. I want overall scores and then each person's 3 sub-scores.
 
-PDIyesNo <- PDIanswers
-
-PDIyesNo <- PDIyesNo %>% 
+#total score
+PDIyesNo <- PDIanswers %>% 
   select(contains("NY"))
-
 PDIyesNo <- PDIyesNo %>% mutate_if(is.character,as.numeric)
 
-PDIsum <- as.data.frame(rowSums(PDIyesNo, na.rm = FALSE))
 
+PDIsum <- as.data.frame(rowSums(PDIyesNo, na.rm = FALSE))
 PDIsum <- PDIsum %>% 
   mutate(id = c(1:925))
 
 PDIyesNo <- PDIyesNo %>% 
-   mutate(id = c(1:925), .before = "PDINY01")
+   mutate(id = c(1:925), .before = "PDINY01") #match "id" column to use join function
 
 PDIyesNo_complete <- PDIyesNo %>% 
   full_join(PDIsum, by = "id")
@@ -84,7 +79,7 @@ PDIyesNo_complete <- PDIyesNo %>%
 PDIyesNo_complete <- PDIyesNo_complete %>% 
   rename(PDIsum = `rowSums(PDIyesNo, na.rm = FALSE)`)
 
-#distress
+#subscore: distress
 
 PDI_distress <- PDIanswers %>% 
   select(contains("PDIDI")) %>% 
@@ -98,42 +93,37 @@ PDI_distress <- PDI_distress %>%
 
 PDI_conviction <- PDIanswers %>% 
   select(contains("PDICO")) %>% 
+  mutate_if(is.character, as.numeric) %>% 
    mutate(id = c(1:925), .before = "PDICO01")
 
 PDI_conviction <- PDI_conviction %>% 
   rowwise() %>% 
-  mutate(convictionMean = mean(PDICO01:PDICO21))
+  mutate(convictionMean = mean(PDICO01, PDICO02, PDICO03, PDICO04, PDICO05, PDICO06, PDICO07, PDICO08, PDICO09, PDICO10, PDICO11, PDICO12, PDICO13, PDICO14, PDICO15, PDICO16, PDICO17, PDICO18, PDICO19, PDICO20, PDICO21)) #disappointingly, I couldn't get the across() function to work the way I wanted. So I typed it out
 
 #preocupation
 
 PDI_preocupation <- PDIanswers %>% 
   select(contains("PDIPR")) %>% 
-   mutate(id = c(1:925), .before = "PDIPR01")
+  mutate_if(is.character, as.numeric) %>% 
+  mutate(id = c(1:925), .before = "PDIPR01")
 
 PDI_preocupation <- PDI_preocupation %>% 
   rowwise() %>% 
-  mutate(preocupationMean = mean(PDIPR01:PDIPR21))
+  mutate(preocupationMean = mean(PDIPR01, PDIPR02, PDIPR03, PDIPR04, PDIPR05, PDIPR06, PDIPR07, PDIPR08, PDIPR09, PDIPR10, PDIPR11, PDIPR12, PDIPR13, PDIPR14, PDIPR15, PDIPR16, PDIPR17, PDIPR18, PDIPR19, PDIPR20, PDIPR21)) 
 
 #putting sub-score means and Y/N sum together in a data frame
 
-PDI_complete <- data.frame(PDI_preocupation$preocupationMean, PDI_conviction$convictionMean, PDI_distress$distressMean, PDIyesNo_complete$PDIsum) %>% 
+PDI_final <- data.frame(PDI_preocupation$preocupationMean, PDI_conviction$convictionMean, PDI_distress$distressMean, PDIyesNo_complete$PDIsum) %>% 
   rename(Preocupation_PDI = PDI_preocupation.preocupationMean, Conviction_PDI = PDI_conviction.convictionMean, Distress_PDI = PDI_distress.distressMean, Sum_PDI = PDIyesNo_complete.PDIsum)
 
 ```
 
 ```{r} 
-# I need to reverse code some questions for the Autism Quotient, the AQ. Then compute sums for each participant
+#reverse code some items in the AQ, create sums for each participant
 
 AQanswers <- as.data.frame(AQanswers)
 
-reverseCoded <- select(AQanswers, c(AQ01, AQ03, AQ08, AQ10, AQ11, AQ14, AQ15, AQ17, AQ24, AQ25, AQ27, AQ28, AQ29, AQ30, AQ31, AQ32, AQ34, AQ36, AQ37, AQ38, AQ40, AQ44, AQ47, AQ48, AQ49, AQ50))
-
 reverseCodedCols <-  c('AQ01', 'AQ03', 'AQ08', 'AQ10', 'AQ11', 'AQ14', 'AQ15', 'AQ17', 'AQ24', 'AQ25', 'AQ27', 'AQ28', 'AQ29', 'AQ30', 'AQ31', 'AQ32', 'AQ34', 'AQ36', 'AQ37', 'AQ38', 'AQ40', 'AQ44', 'AQ47', 'AQ48', 'AQ49', 'AQ50')
-
-class(AQanswers)
-str(AQanswers)
-
- # reverseCoded <- recode(reverseCoded, "1" = 2, "2" = 1)
 
 AQanswers_r <-
   mutate(AQanswers,
@@ -141,43 +131,115 @@ AQanswers_r <-
   ) %>% 
     mutate(across(all_of(reverseCodedCols), recode, `1` = 0, `0` = 1 ))
 
-
-
-AQ_sums <- as.character(AQ_sums)
+# AQ_sums <- AQanswers_r %>% 
+#  rowwise() %>% 
+#  mutate(AQsum = sum(across(c(AQ01:AQ50)))) #not understanding this. the code will run but doesn't look like it actually does anything.
 
 AQ_sums <- AQanswers_r %>% 
   rowwise() %>% 
-  mutate(AQsum = sum(across(AQ01:AQ50))) #good
-
-
-#str(AQanswers_r)
-
-#AQanswers_r <- as.numeric(AQanswers_r)
-
-#AQ_sum1 <- AQanswers_r %>% 
- # rowSums()
-
-#AQanswers_r <- AQanswers_r %>% 
- # mutate(id = c(1:925))
-
-#AQ_sum2 <- as.data.frame(AQ_sum1)
-
-#AQ_sum2 <- AQ_sum2 %>% 
-#  mutate(AQ_sum2, id = c(1:925))
-
-#AQanswers_done <- full_join(AQ_sum2, AQanswers_r, by = "id")
-
-#str(AQanswers_r)
-
-#AQ_sums <- AQanswers_r %>% 
-#  rowwise() %>% 
-#  mutate(AQsum = sum(across(all_of(AQanswers_r))))
+  mutate(AQsum = sum(c(AQ01, AQ02, AQ03, AQ04, AQ05, AQ06, AQ07, AQ08, AQ09, AQ10, AQ11, AQ12, AQ13, AQ14, AQ15, AQ16, AQ17, AQ18, AQ19, AQ20, AQ21, AQ22, AQ23, AQ24, AQ25, AQ26, AQ27, AQ28, AQ29, AQ30, AQ31, AQ32, AQ33, AQ34, AQ35, AQ36, AQ37, AQ38, AQ39, AQ40, AQ41, AQ42, AQ43, AQ44, AQ45, AQ46, AQ47, AQ48, AQ49, AQ50)))
 
 ```
 
 ```{r}
-#Now I need to compute total scores for the ASRS. I also want to create subscores for hyperactivity and inattentiveness
+#compute total scores for the ASRS. create 2 subscores: hyperactivity and inattentiveness
+
+ASRSanswers <- ASRSanswers %>% 
+  select(-"ID code")
+
+ASRS_sum <- ASRSanswers %>% 
+  mutate_if(is.character, as.numeric) %>% 
+  rowwise() %>% 
+  mutate(ASRSsum = sum(c(ASRS01, ASRS02, ASRS03, ASRS04, ASRS05, ASRS06, ASRS07, ASRS08, ASRS09, ASRS10, ASRS11, ASRS12, ASRS13, ASRS14, ASRS15, ASRS16, ASRS17, ASRS18)))
+
+```
+
+```{r}
+#I expect normal distributions for AQ and ASRS, but I am curious about the second one
+
+AQ_density <- AQ_sums %>% 
+  ggplot() +
+  aes(x = AQ_sums$AQsum) +
+  geom_density() +
+   theme(axis.title.x = element_blank(),
+        axis.title.y = element_blank()) +
+  ggtitle("AQ")
+
+AQ_density #looks normal
+
+ASRS_density <- ASRS_sum %>% 
+  ggplot() +
+  aes(x = ASRS_sum$ASRSsum) +
+  geom_density() +
+   theme(axis.title.x = element_blank(),
+        axis.title.y = element_blank()) +
+  ggtitle("ASRS")
+
+ASRS_density
+
+PDI_density <- PDI_final %>% 
+  ggplot() +
+  aes(x = PDI_final$Sum_PDI) +
+  geom_density() +
+  theme(axis.title.x = element_blank(),
+        axis.title.y = element_blank()) +
+  ggtitle("PDI")
+
+PDI_density 
+
+densities <- wrap_plots(PDI_density, ASRS_density,AQ_density)
+
+densities
 
 
+ggsave("densities.png", height = 6, width = 9)
 
+#scatterplots. I expect positive correlations for all of them.
+
+data_full <- data.frame("ASRS" = ASRS_sum$ASRSsum,
+                        "AQ" = AQ_sums$AQsum,
+                        "PDIYN" = PDI_final$Sum_PDI)
+
+AQ_ASRS_plot <- data_full %>% 
+  ggplot(aes(x = AQ, 
+             y = ASRS)) +
+  geom_point(alpha = .5,
+             color = "blue",
+             fill = "blue") +
+   geom_smooth(method = "lm")
+
+AQ_ASRS_plot
+
+#scatterplot of AQ and PDI. 
+
+AQ_PDI_plot <- data_full %>% 
+  ggplot(aes(x = AQ, 
+             y = PDIYN)) +
+  geom_point(alpha = .5,
+             color = "purple",
+             fill = "purple") +
+   geom_smooth(method = "lm")
+
+AQ_PDI_plot
+
+#scatterplot of ASRS and PDI.
+
+ASRS_PDI_plot <- data_full %>% 
+  ggplot(aes(x = ASRS, 
+             y = PDIYN)) +
+  geom_point(alpha = .5,
+             color = "green",
+             fill = "green") +
+   geom_smooth(method = "lm")
+
+ASRS_PDI_plot
+```
+
+```{r}
+#saving plots
+
+ggsave("densities.png", height = 6, width = 9)
+ggsave("ASRS_PDI_plot.png", height = 6, width = 9)
+ggsave("AQ_PDI_plot.png", height = 6, width = 9)
+ggsave("AQ_ASRS_plot.png", height = 6, width = 9)
 ```
