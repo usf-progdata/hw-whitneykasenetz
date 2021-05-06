@@ -11,7 +11,8 @@ library(janitor)
 library(readxl)
 library(here)
 library(patchwork)
-
+library(latexpdf)
+library(devtools)
 #bring in data
 
 AQquestions <- read_excel(here::here("data", "AQquestions.xlsx"), col_names = FALSE)
@@ -242,4 +243,6 @@ ggsave("densities.png", height = 6, width = 9)
 ggsave("ASRS_PDI_plot.png", height = 6, width = 9)
 ggsave("AQ_PDI_plot.png", height = 6, width = 9)
 ggsave("AQ_ASRS_plot.png", height = 6, width = 9)
+
+devtools::session_info() 
 ```

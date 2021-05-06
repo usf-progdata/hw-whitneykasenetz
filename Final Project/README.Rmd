@@ -5,9 +5,8 @@ date: "5/5/2021"
 output: html_document
 ---
 # Final Project
-## My goal for this project is to confirm some parts of what I read in the publication, which can be found in the data folder. I'm not trying to find any new information, but rather use my knowledge of using R to replicate (to some degree) the information provided in the article with only the raw data as a starting point.
 
-###  Participants: this sample is a diverse population of 925 males in Stockholm, Sweden aged 18-35 years who are healthy and without any diagnosed psychiatric disorders.
+###  Participants: this sample is a diverse population of 925 males in Stockholm, Sweden aged 18-35 years who are healthy and without any diagnosed psychiatric disorders. They were recruited through social media advertisements.
 
 #### The purpose of the study was to investigate how psychosis-proneness relates to ADHD and ASD. Specifically, they were interested in the trait co-morbidity of the subclinical symptoms of these disorders.
 

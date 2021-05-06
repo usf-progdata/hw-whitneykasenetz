@@ -1,0 +1,17 @@
+---
+title: "Description of Analysis and Conclusions"
+author: "Whitney Kasenetz"
+date: "5/6/2021"
+output: html_document
+---
+####    My goal for this project is to confirm some parts of what I read in the publication, which can be found in the data folder. I'm not trying to discover any new information, but rather use my knowledge of using R to replicate (to some degree) the information provided in the article with only the raw data as a starting point.
+
+
+######   The article stated that Autism and ADHD are normally distributed in the population. I was curious if I could see this for myself in the data, therefore I created density plots for the Autism Quotient (AQ) and the ADHD Self Report Scale (ASRS). I confirmed through visual analysis of the density graph that that the AQ and ASRS were normally distributed in this sample. 
+
+###### It was unclear in the article whether the subclinical traits of psychosis- proneness are normally distributed. Therefore, I created a density graph of the data from the Peters et. al Delusional Ideation measure. I found a non-normal distribution for this sample.
+
+######    It is known that ADHD and Autism are positively correlated. This is due in part to the high co-morbidity between traits associated with these disorders, which suggests a similar genetic causation. This pattern applied to the sample I looked at, as I found a positive correlation between AQ scores and ASRS scores. 
+
+######    The purpose of the study was to investigate the relationships between delusion-proneness, ADHD and Autism. I found a positive correlation between PDI scores and AQ scores, and another positive correlation between PDI scores and ASRS scores. 
+
